@@ -21,6 +21,7 @@
 //===============================================================================================================
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -68,7 +69,7 @@ namespace EWSoftware.PDI
 
         private bool canOccurOnHoliday;
 
-        private RecurFrequency  frequency;
+        private RecurFrequency frequency;
 
         private int interval;
 
@@ -2691,5 +2692,45 @@ namespace EWSoftware.PDI
                 sb.Append(LR.GetString(desc));
         }
         #endregion
+
+        #region CRON-Expression generator implementation
+        /// <summary>
+        /// Computes the CRON Expression for a recurrence.
+        /// </summary>
+        /// <returns>
+        /// Returns a string containing the computed CRON-Expression
+        /// </returns>
+        public string GetCronExpression()
+        {
+            string Expression;
+            switch(frequency)
+            {
+                case RecurFrequency.Hourly:
+                    Expression = $"0 0 */{interval} * * * *"; 
+                    break;
+                case RecurFrequency.Daily:
+                    Expression = $"0 0 0 */{interval} * * *";
+                    break;
+                case RecurFrequency.Weekly:
+                    Expression = $"0 0 * * {String.Join(",", new List<DayInstance>(byDay).Select(x => x.DayOfWeek))}";
+                    break;
+                case RecurFrequency.Monthly:
+                    Expression = $"0 0 * * {String.Join(",", new List<int>(byMonthDay))}";
+                    break;
+                case RecurFrequency.Yearly:
+                    Expression = $"0 0 0 {String.Join(",", new List<int>(byMonthDay))} {String.Join(",", new List<int>(byMonth))} ? */{interval}";
+                    break;
+            }
+            return null;
+        }
+        #endregion
+    }
+
+    public class CronExpression
+    {
+        public CronExpression()
+        {
+
+        }
     }
 }
